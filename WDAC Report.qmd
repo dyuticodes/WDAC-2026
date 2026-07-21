@@ -1,6 +1,17 @@
 ---
 title: "Is Australia doing well?"
-format: html
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: true
+    code-summary: "Show code"
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
 editor: visual
 Author: Meghna Anand (SID:540360309), Dyuti Shraboni Ghosh (SID:540364743)
 ---
@@ -10,6 +21,15 @@ Author: Meghna Anand (SID:540360309), Dyuti Shraboni Ghosh (SID:540364743)
 ## 1. Introduction
 
 ## 2. Data Cleaning and Wrangling
+
+```{r}
+# setting a seed for reproducibility
+set.seed(123)
+
+# import OECD data
+data=read.csv("OECD Data.csv")
+
+```
 
 ## 3. Exploratory Data Analysis
 
@@ -22,3 +42,7 @@ Author: Meghna Anand (SID:540360309), Dyuti Shraboni Ghosh (SID:540364743)
 ## 7. Conclusion
 
 ## 8. References
+
+Organisation for Economic Co-operation and Development (2026) *Current well-being*. OECD Data Explorer. Available at: [https://data-explorer.oecd.org/vis?df\[ds\]=DisseminateFinalDMZ&df\[id\]=DSD_HSL%40DF_HSL_CWB&df\[ag\]=OECD.WISE.WDP](https://data-explorer.oecd.org/vis?df[ds]=DisseminateFinalDMZ&df[id]=DSD_HSL%40DF_HSL_CWB&df[ag]=OECD.WISE.WDP) (Accessed: 21 July 2026).
+
+Organisation for Economic Co-operation and Development (2026) *OECD well-being database definitions*. OECD. Available at: <https://www.oecd.org/content/dam/oecd/en/topics/policy-sub-issues/measuring-well-being-and-progress/oecd-well-being-database-definitions.pdf> (Accessed: 21 July 2026).
