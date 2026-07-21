@@ -62,6 +62,7 @@ wellbeing |>
 
 ## 3. Exploratory Data Analysis
 
+
 ```{r}
 # OECD Quality of Life domains
 qol_domains <- c(
@@ -270,7 +271,305 @@ ggplot(
   facet_wrap(~indicator,
              scales="free_y")
 
+
+## Australian household income over time
+
+The OECD dataset provides three Australian indicators under the Income and Wealth domain: household disposable income, the top-to-bottom household income ratio, and median net wealth. Household net adjusted disposable income per person was selected as the primary measure of material prosperity because it has a complete annual series from 2010 to 2024 and is suitable for comparison across countries. The other two indicators are retained as supporting context because they contain fewer observations and end in 2020.
+
+```{r}
+#| label: extract-australia-income
+#| include: false
+australia_income <- wellbeing |>
+  filter(
+    country_code == "AUS",
+    indicator_code == "1_1"
+  ) |>
+  arrange(year) |>
+  mutate(
+    annual_change = value - lag(value),
+    annual_change_pct = 100 * (value / lag(value) - 1)
+  )
+
+australia_income
 ```
+
+### Income trend
+
+```{r}
+#| label: plot-australia-income
+#| echo: false
+#| warning: false
+#| message: false
+#| fig-width: 8
+#| fig-height: 5
+
+ggplot(
+  australia_income,
+  aes(x = year, y = value)
+) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  scale_x_continuous(
+    breaks = seq(
+      min(australia_income$year),
+      max(australia_income$year),
+      by = 2
+    )
+  ) +
+  scale_y_continuous(
+    labels = scales::label_dollar(
+      prefix = "$",
+      big.mark = ","
+    )
+  ) +
+  labs(
+    title = "Australia's household disposable income has increased",
+    subtitle = "Net adjusted disposable income per person, 2023 USD PPP",
+    x = NULL,
+    y = "Income per person"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+Australia’s household disposable income increased from approximately \$44,625 per person in 2010 to \$50,629 in 2024, an overall increase of 13.5%. However, the trend was not continuous: income peaked at \$52,430 in 2021 before declining in subsequent years.
+
+### Summary of the income trend
+
+```{r}
+#| label: summarise-australia-income
+#| include: false
+
+australia_income_summary <- australia_income |>
+  summarise(
+    first_year = first(year),
+    latest_year = last(year),
+    starting_income = first(value),
+    latest_income = last(value),
+    total_change = last(value) - first(value),
+    percentage_change = 100 * (last(value) / first(value) - 1),
+    lowest_income = min(value),
+    lowest_year = year[which.min(value)],
+    highest_income = max(value),
+    highest_year = year[which.max(value)]
+  ) |>
+  mutate(
+    percentage_change = round(percentage_change, 1)
+  )
+
+australia_income_summary
+```
+
+Australia’s household disposable income increased from \$44,625 per person in 2010 to \$50,629 in 2024, representing an overall increase of 13.5%. However, growth was uneven: income peaked at \$52,430 in 2021, declined in 2022 and 2023, and partially recovered in 2024.
+
+## International income comparison
+
+```{r}
+#| label: prepare-international-income-comparison
+#| include: false
+
+# Check how many countries have income data in each year
+income_year_coverage <- wellbeing |>
+  filter(indicator_code == "1_1") |>
+  distinct(country_code, year) |>
+  count(
+    year,
+    name = "countries_available"
+  ) |>
+  arrange(year)
+
+# Use 2022 because it is the latest year with near-complete coverage
+comparison_year <- 2022
+
+comparison_year_coverage <- income_year_coverage |>
+  filter(year == comparison_year) |>
+  pull(countries_available)
+
+maximum_country_coverage <- max(
+  income_year_coverage$countries_available
+)
+
+comparison_coverage_pct <- round(
+  100 * comparison_year_coverage / maximum_country_coverage,
+  1
+)
+
+# Create the international income dataset for 2022
+income_comparison <- wellbeing |>
+  filter(
+    indicator_code == "1_1",
+    year == comparison_year
+  ) |>
+  distinct(
+    country_code,
+    country,
+    .keep_all = TRUE
+  ) |>
+  transmute(
+    country_code,
+    country,
+    year,
+    income_per_person = value
+  ) |>
+  arrange(desc(income_per_person)) |>
+  mutate(
+    income_rank = row_number()
+  )
+```
+
+The international income comparison uses `r comparison_year`, the most recent year with near-complete country coverage. Household disposable income data were available for `r comparison_year_coverage` countries, compared with a maximum of `r maximum_country_coverage` countries in earlier years. This represents `r comparison_coverage_pct`% of the maximum available coverage and provides a recent comparison while minimising the exclusion of countries due to missing data.
+
+### Australia's international income position
+
+```{r}
+#| label: calculate-australia-income-position
+#| include: false
+
+australia_income_position <- income_comparison |>
+  filter(country_code == "AUS")
+
+australia_income_value <- australia_income_position |>
+  pull(income_per_person)
+
+australia_income_rank <- australia_income_position |>
+  pull(income_rank)
+
+international_income_median <- median(
+  income_comparison$income_per_person,
+  na.rm = TRUE
+)
+
+difference_from_median_pct <- round(
+  100 * (
+    australia_income_value /
+      international_income_median - 1
+  ),
+  1
+)
+
+australia_income_peers <- income_comparison |>
+  mutate(
+    distance_from_australia =
+      abs(income_per_person - australia_income_value),
+    country_group = if_else(
+      country_code == "AUS",
+      "Australia",
+      "Similar-income country"
+    )
+  ) |>
+  slice_min(
+    order_by = distance_from_australia,
+    n = 9,
+    with_ties = FALSE
+  ) |>
+  arrange(income_per_person)
+```
+
+In `r comparison_year`, Australia recorded household disposable income of `r scales::dollar(australia_income_value, accuracy = 1)` per person and ranked `r australia_income_rank` out of `r nrow(income_comparison)` countries. Australia's income was approximately `r difference_from_median_pct`% above the median of the countries included in the comparison.
+
+### Australia’s similar-income peer group
+
+To create a focused economic benchmark, similar-income countries were defined as those whose household disposable income was within 15% of Australia’s 2022 value. This comparison helps assess whether Australia achieves stronger or weaker quality-of-life outcomes than countries with broadly comparable household resources.
+
+```{r}
+#| label: create-australia-income-peer-group
+#| include: false
+
+peer_band_pct <- 0.15
+
+peer_lower_bound <- australia_income_value *
+  (1 - peer_band_pct)
+
+peer_upper_bound <- australia_income_value *
+  (1 + peer_band_pct)
+
+australia_income_peers <- income_comparison |>
+  filter(
+    income_per_person >= peer_lower_bound,
+    income_per_person <= peer_upper_bound
+  ) |>
+  mutate(
+    country_group = if_else(
+      country_code == "AUS",
+      "Australia",
+      "Similar-income country"
+    )
+  ) |>
+  arrange(income_per_person)
+
+peer_country_count <- australia_income_peers |>
+  filter(country_code != "AUS") |>
+  nrow()
+```
+
+Using this definition, Australia was compared with `r peer_country_count` countries whose household disposable income fell between `r scales::dollar(peer_lower_bound, accuracy = 1)` and `r scales::dollar(peer_upper_bound, accuracy = 1)` per person.
+
+```{r}
+#| label: plot-australia-similar-income-countries
+#| echo: false
+#| warning: false
+#| message: false
+#| fig-width: 8
+#| fig-height: 6
+
+ggplot(
+  australia_income_peers,
+  aes(
+    x = reorder(country, income_per_person),
+    y = income_per_person,
+    fill = country_group
+  )
+) +
+  geom_col() +
+  geom_text(
+    aes(
+      label = scales::dollar(
+        income_per_person,
+        accuracy = 1,
+        big.mark = ","
+      )
+    ),
+    hjust = -0.1,
+    size = 3.4
+  ) +
+  coord_flip(
+    clip = "off"
+  ) +
+  scale_y_continuous(
+    labels = scales::label_dollar(
+      accuracy = 1,
+      big.mark = ","
+    ),
+    expand = expansion(
+      mult = c(0, 0.2)
+    )
+  ) +
+  labs(
+    title = paste0(
+      "Countries within 15% of Australia's household income, ",
+      comparison_year
+    ),
+    subtitle = "Net adjusted disposable income per person, 2023 USD PPP",
+    x = NULL,
+    y = "Income per person",
+    fill = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "none",
+    plot.margin = margin(
+      t = 5.5,
+      r = 40,
+      b = 5.5,
+      l = 5.5
+    )
+  )
+```
+
+These countries will form the focused peer group for comparing Australia’s quality-of-life performance. However, all countries with complete and comparable data will be retained for the overall international ranking and regression analysis.
+
+## Preliminary economic finding
+
+Australia’s household disposable income increased by 13.5% between 2010 and 2024, indicating that households became materially better off on this measure. However, progress was uneven: income peaked in 2021, declined in 2022 and 2023, and partially recovered in 2024. Internationally, Australia ranked sixth out of 36 countries in 2022 and recorded income 20.6% above the sample median. Thirteen countries fell within 15% of Australia’s income and will provide a focused peer group for evaluating whether Australia achieves comparatively stronger or weaker quality-of-life outcomes despite having similar household resources.
 
 ## 4. Relationship Analysis
 
