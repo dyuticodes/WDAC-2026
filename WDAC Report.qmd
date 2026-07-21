@@ -1,13 +1,23 @@
 ---
-title: "Has Australia's rising material prosperity since 2010 been matched by its social wellbeing, or have the two divereged, particularly since 2022, relative to comparable OECD nations ?"
-format: html
+title: "Has Australia's rising material prosperity since 2010 translated into comparable improvements in social wellbeing, and how does Australia's performance compare with other OECD countries with similar levels of prosperity?"
+format: 
+  html: 
+    code-fold: true
+    code-summary: "Show code"
 editor: visual
 Author: Meghna Anand (SID:540360309), Dyuti Shraboni Ghosh (SID:540364743)
 ---
 
 ## Executive Summary
+This study investigates whether Australia's rising material prosperity since 2010 has been accompanied by improvements in social wellbeing. Using OECD Better Life indicators, a composite Quality of Life Index was constructed from seven indicators spanning health, education, environmental quality and subjective wellbeing.
 
-## 1. Introduction
+Descriptive analysis shows that household disposable income increased by approximately 13.5% between 2010 and 2024, placing Australia among the highest-income OECD countries. However, improvements in quality of life were considerably smaller and varied substantially across wellbeing domains.
+
+To investigate this relationship further, a multiple regression model was developed using OECD countries to estimate the association between prosperity and quality of life. While prosperity indicators explained around 43% of the variation in wellbeing, Australia consistently recorded lower quality of life than predicted from its income, wealth, housing affordability and employment outcomes.
+
+These findings suggest that although material prosperity contributes to wellbeing, it is not sufficient to explain Australia's social outcomes. Economic growth alone has not translated proportionately into improvements in health, environmental quality and subjective wellbeing, highlighting the importance of considering broader measures of national progress.
+
+## 1. Introduction (maybe not needed?)
 
 Australia is frequently regarded as one of the world's most prosperous economies. Rising household incomes and wealth suggest Australians are materially better off than they were two decades ago. However, economic prosperity does not necessarily translate into a higher quality of life. This study investigates whether Australia's increasing prosperity has been accompanied by improvements in health, environmental quality, education and subjective wellbeing, and compares Australia's performance with similar OECD nations.
 
@@ -68,7 +78,11 @@ wellbeing |>
 ```
 
 ## 3. Exploratory Data Analysis
+Quality of life is inherently multidimensional and cannot be represented by a single OECD indicator. Consequently, a composite index was constructed using indicators spanning health, knowledge and skills, environmental quality and subjective wellbeing.
+Each indicator was first normalised using min–max scaling to produce scores between 0 and 100. Indicators where higher values represented poorer outcomes (such as suicide deaths and air pollution) were reverse-scored so that larger values consistently indicated better quality of life.
+Domain scores were calculated as the arithmetic mean of the indicators within each domain, while the overall Quality of Life Index was calculated as the mean of the domain scores, giving equal weight to each domain.
 
+**Constructing the quality of life index**
 ```{r}
 # OECD Quality of Life domains
 qol_domains <- c(
@@ -88,11 +102,6 @@ wellbeing |>
   distinct(domain) |>
   arrange(domain)
 
-```
-
-**Constructing the quality of life index**
-
-```{r}
 # Define the Quality of Life indicators
 
 qol_indicators <- tribble(
@@ -166,7 +175,8 @@ qol_index <- domain_scores |>
   )
 ```
 
-**Has Australia's Quality of Life improved?**
+**Trends in Australia's quality of life**
+Australia's Quality of Life Index increased over the study period, although the rate of improvement was modest relative to the substantial increase observed in household disposable income. This suggests that gains in material prosperity were not accompanied by equally large improvements in broader measures of wellbeing.
 
 ```{r}
 australia_qol <- qol_index |>
@@ -199,7 +209,7 @@ ggplot(australia_qol,
               linetype = 2,
               colour = "grey40") +
   labs(
-    title = "Australia's Quality of Life has steadily improved",
+    title = "Australia's Quality of Life over the years",
     subtitle = "Overall Quality of Life Index",
     x = NULL,
     y = "Index (0–100)"
@@ -245,72 +255,6 @@ ggplot(australia_domains,
   geom_line(linewidth = 1) +
   facet_wrap(~domain) +
   theme_minimal()
-```
-
-```{r}
-#| label: plot-australia-indicator-changes
-#| echo: false
-#| warning: false
-#| message: false
-
-indicator_change <- qol_scores |>
-  filter(country == "Australia") |>
-  group_by(indicator) |>
-  arrange(year, .by_group = TRUE) |>
-  summarise(
-    Start = first(score),
-    End = last(score),
-    Change = End - Start,
-    .groups = "drop"
-  ) |>
-  arrange(desc(Change))
-
-ggplot(
-  indicator_change,
-  aes(
-    x = Change,
-    y = reorder(indicator, Change)
-  )
-) +
-  geom_col() +
-  labs(
-    title = "Change in Australia's quality-of-life indicators",
-    x = "Change in normalised score",
-    y = NULL
-  ) +
-  theme_minimal(base_size = 12)
-```
-
-```{r}
-#| label: plot-australia-indicator-trends
-#| echo: false
-#| warning: false
-#| message: false
-
-ggplot(
-<<<<<<< HEAD
-  filter(
-    qol_scores,
-    country == "Australia"
-  ),
-  aes(
-    x = year,
-    y = score,
-    group = indicator
-  )
-) +
-  geom_line(linewidth = 0.9) +
-  geom_point(size = 1.8) +
-  facet_wrap(
-    ~indicator,
-    scales = "free_x"
-  ) +
-  labs(
-    title = "Australia's quality-of-life indicators over time",
-    x = NULL,
-    y = "Normalised score"
-  ) +
-  theme_minimal(base_size = 12)
 ```
 
 ## Australian household income over time
@@ -617,21 +561,8 @@ These countries will form the focused peer group for comparing Australia’s qua
 ## Preliminary economic finding
 
 Australia’s household disposable income increased by 13.5% between 2010 and 2024, indicating that households became materially better off on this measure. However, progress was uneven: income peaked in 2021, declined in 2022 and 2023, and partially recovered in 2024. Internationally, Australia ranked sixth out of 36 countries in 2022 and recorded income 20.6% above the sample median. Thirteen countries fell within 15% of Australia’s income and will provide a focused peer group for evaluating whether Australia achieves comparatively stronger or weaker quality-of-life outcomes despite having similar household resources.
-=======
-  filter(qol_scores,
-         country=="Australia"),
-  aes(year,
-      score,
-      colour=indicator)
-)+
-  geom_line()+
-  facet_wrap(~indicator,
-             scales="free_y")
 
-```
->>>>>>> 3d529cc (Add quality of life predictive modelling)
-
-## 4. Relationship Analysis
+## 4. Relationship Analysis (is it needed??)
 
 ## 5. Predictive Modelling
 
@@ -650,10 +581,8 @@ prosperity_candidates <- wellbeing |>
 prosperity_candidates |>
   print(n = Inf)
 
-```
-
-```{r}
 # CREATE MODELLING DATASET
+
 prosperity_indicators <- c(
   "Households and NPISHs net adjusted disposable income per capita",
   "Median net wealth",
@@ -695,15 +624,14 @@ ml_data |>
 
 colSums(is.na(ml_data))
 
+
 ```
 
+A correlation matrix was first used to examine the direction and strength of the relationships between the Quality of Life Index and the four prosperity indicators. The correlations provide an initial indication of how each prosperity measure is associated with quality of life. However, these relationships are considered simultaneously in the regression model because income, wealth, employment and housing conditions may also be related to one another.
 ```{r}
-# ---------------------------------------------------------
-# STEP 3: CORRELATION ANALYSIS
-# ---------------------------------------------------------
-
+# CORRELATION ANALYSIS
 cor_matrix <- ml_data |>
-  select(
+  dplyr::select(
     qol_index,
     income,
     wealth,
@@ -712,7 +640,6 @@ cor_matrix <- ml_data |>
   ) |>
   cor()
 
-round(cor_matrix, 2)
 
 library(corrplot)
 corrplot(
@@ -724,23 +651,29 @@ corrplot(
   tl.srt = 45,
   number.cex = 0.7
 )
-
-cor.test(ml_data$qol_index, ml_data$income)
-
-cor.test(ml_data$qol_index, ml_data$wealth)
-
-cor.test(ml_data$qol_index, ml_data$housing)
-
-cor.test(ml_data$qol_index, ml_data$employment)
-
 ```
 
+A multiple linear regression model was estimated using all country-year observations, including Australia. This model is used to describe the overall association between material prosperity and quality of life across the dataset.
 ```{r}
 ## MULTIPLE LINEAR REGRESSION
 
+ml_data_scaled <-
+  ml_data |>
+  mutate(
+    across(
+      c(
+        income,
+        wealth,
+        housing,
+        employment
+      ),
+      scale
+    )
+  )
+
 full_model <- lm(
   qol_index ~ income + wealth + housing + employment,
-  data = ml_data
+  data = ml_data_scaled
 )
 
 summary(full_model)
@@ -814,6 +747,7 @@ anova(step_model, full_model)
 tidy(step_model, conf.int = TRUE)
 ```
 
+Regression diagnostics were examined to assess whether the model’s assumptions were reasonably satisfied. These checks considered the linearity of the relationships, the distribution and consistency of residuals, influential observations and multicollinearity among predictors.
 ```{r}
 # ---------------------------------------------------------
 # STEP 6:CHECKING REGRESSION ASSUMPTIONS
@@ -841,9 +775,7 @@ training_data <- ml_data |>
 australia_data <- ml_data |>
   filter(country == "Australia")
 
-# ---------------------------------------------------------
 # FINAL MODEL (TRAINED WITHOUT AUSTRALIA)
-# ---------------------------------------------------------
 
 final_model <- lm(
   qol_index ~ income + wealth + housing + employment,
@@ -852,15 +784,12 @@ final_model <- lm(
 
 summary(final_model)
 
-
 library(broom)
 
 tidy(final_model, conf.int = TRUE)
 
 glance(final_model)
-```
 
-```{r}
 australia_predictions <- australia_data |>
   mutate(
     predicted_qol = predict(
@@ -871,9 +800,8 @@ australia_predictions <- australia_data |>
   )
 
 australia_predictions
-```
 
-```{r}
+
 australia_summary <- australia_predictions |>
   summarise(
     mean_actual = mean(qol_index),
@@ -884,9 +812,6 @@ australia_summary <- australia_predictions |>
 
 australia_summary
 
-```
-
-```{r}
 library(ggplot2)
 library(tidyr)
 library(dplyr)
@@ -953,8 +878,27 @@ ggplot(
   )
 ```
 
+The model predicts that a country with Australia's combination of income, wealth, employment and housing affordability would typically achieve a Quality of Life Index of approximately 73.3. Australia's observed score was considerably lower at 68.3, indicating that its social wellbeing falls below the level generally expected for countries with comparable material prosperity.
+
+Australia's average observed Quality of Life Index was 68.3 compared with an expected value of 73.3 predicted from comparable OECD countries.
+This persistent negative gap indicates that Australia's level of social wellbeing is lower than would typically be expected given its household income, wealth, employment and housing affordability.
+Consequently, while Australia performs strongly on measures of material prosperity, those advantages have not translated proportionately into broader measures of wellbeing.
+
 ## 6. Limitations
+- QoL index depends on selected indicators
+- Missing OECD observations reduce sample size
+- Regression measures association not causation
+- Other social factors weren't included
 
 ## 7. Conclusion
+This analysis demonstrates that Australia's material prosperity has continued to improve over the past decade, particularly in terms of household disposable income. However, improvements in quality of life have been considerably more modest and inconsistent.
+Across OECD countries, prosperity is associated with higher quality of life, explaining approximately 43% of the observed variation. Nevertheless, Australia's quality of life remains below the level predicted by its prosperity indicators.
+These findings suggest that economic growth alone is insufficient to guarantee improvements in social wellbeing. Policies aimed at improving health, environmental quality and subjective wellbeing may therefore be just as important as increasing national prosperity when seeking to improve Australians' quality of life.
+
+Overall, the analysis provides evidence that Australia's material prosperity has grown faster than its social wellbeing. While Australia remains one of the wealthiest OECD countries, the predictive model indicates that its quality of life is consistently lower than expected for a nation with its level of prosperity. This suggests that future improvements in national wellbeing are likely to depend not only on economic growth, but also on policies that strengthen health, environmental quality, education and subjective wellbeing.
 
 ## 8. References
+
+Organisation for Economic Co-operation and Development (2026) *Current well-being*. OECD Data Explorer. Available at:[https://data-explorer.oecd.org/vis?df\[ds\]=DisseminateFinalDMZ&df\[id\]=DSD_HSL%40DF_HSL_CWB&df\[ag\]=OECD.WISE.WDP](https://data-explorer.oecd.org/vis?df[ds]=DisseminateFinalDMZ&df[id]=DSD_HSL%40DF_HSL_CWB&df[ag]=OECD.WISE.WDP) (Accessed: 21 July 2026).
+
+Organisation for Economic Co-operation and Development (2026)*OECD well-being database definitions*. OECD. Available at:<https://www.oecd.org/content/dam/oecd/en/topics/policy-sub-issues/measuring-well-being-and-progress/oecd-well-being-database-definitions.pdf>(Accessed: 21 July 2026).
