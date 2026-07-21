@@ -30,7 +30,6 @@ oecd_data <- read_csv(
 ) |>
   clean_names()
 
-#prepare dataset
 wellbeing <- oecd_data |>
   filter(
     age == "_T",
@@ -38,13 +37,21 @@ wellbeing <- oecd_data |>
     education_lev == "_T"
   ) |>
   transmute(
+    country_code = ref_area,
     country = reference_area,
-    domain = domain_2,
+    indicator_code = measure,
     indicator = measure_2,
+    domain_code = domain,
+    domain = domain_2,
     year = as.integer(time_period),
-    value = as.numeric(obs_value)
+    value = as.numeric(obs_value),
+    unit = unit_of_measure,
+    status = observation_status
   ) |>
-  drop_na()
+  filter(
+    !is.na(year),
+    !is.na(value)
+  )
 
 
 # Quick overview
@@ -61,7 +68,6 @@ wellbeing |>
 ```
 
 ## 3. Exploratory Data Analysis
-
 
 ```{r}
 # OECD Quality of Life domains
@@ -242,57 +248,97 @@ ggplot(australia_domains,
 ```
 
 ```{r}
-indicator_change <-
-  qol_scores |>
-  filter(country=="Australia") |>
+#| label: plot-australia-indicator-changes
+#| echo: false
+#| warning: false
+#| message: false
+
+indicator_change <- qol_scores |>
+  filter(country == "Australia") |>
   group_by(indicator) |>
+  arrange(year, .by_group = TRUE) |>
   summarise(
-    Start=first(score),
-    End=last(score),
-    Change=End-Start
+    Start = first(score),
+    End = last(score),
+    Change = End - Start,
+    .groups = "drop"
   ) |>
   arrange(desc(Change))
 
 ggplot(
   indicator_change,
-  aes(Change,
-      reorder(indicator,Change))
-)+
-  geom_col(fill="#2E86AB")
+  aes(
+    x = Change,
+    y = reorder(indicator, Change)
+  )
+) +
+  geom_col() +
+  labs(
+    title = "Change in Australia's quality-of-life indicators",
+    x = "Change in normalised score",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+```{r}
+#| label: plot-australia-indicator-trends
+#| echo: false
+#| warning: false
+#| message: false
 
 ggplot(
-  filter(qol_scores,
-         country=="Australia"),
-  aes(year,
-      score,
-      colour=indicator)
-)+
-  geom_line()+
-  facet_wrap(~indicator,
-             scales="free_y")
-
+  filter(
+    qol_scores,
+    country == "Australia"
+  ),
+  aes(
+    x = year,
+    y = score,
+    group = indicator
+  )
+) +
+  geom_line(linewidth = 0.9) +
+  geom_point(size = 1.8) +
+  facet_wrap(
+    ~indicator,
+    scales = "free_x"
+  ) +
+  labs(
+    title = "Australia's quality-of-life indicators over time",
+    x = NULL,
+    y = "Normalised score"
+  ) +
+  theme_minimal(base_size = 12)
+```
 
 ## Australian household income over time
 
 The OECD dataset provides three Australian indicators under the Income and Wealth domain: household disposable income, the top-to-bottom household income ratio, and median net wealth. Household net adjusted disposable income per person was selected as the primary measure of material prosperity because it has a complete annual series from 2010 to 2024 and is suitable for comparison across countries. The other two indicators are retained as supporting context because they contain fewer observations and end in 2020.
 
+
 ```{r}
-#| label: extract-australia-income
+#| label: prepare-australia-income-data
 #| include: false
+
 australia_income <- wellbeing |>
   filter(
-    country_code == "AUS",
-    indicator_code == "1_1"
+    country == "Australia",
+    stringr::str_detect(
+      indicator,
+      stringr::regex(
+        "net adjusted disposable income",
+        ignore_case = TRUE
+      )
+    )
   ) |>
   arrange(year) |>
   mutate(
     annual_change = value - lag(value),
-    annual_change_pct = 100 * (value / lag(value) - 1)
+    annual_change_pct =
+      100 * (value / lag(value) - 1)
   )
-
-australia_income
 ```
-
 ### Income trend
 
 ```{r}
