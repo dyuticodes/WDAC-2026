@@ -1,66 +1,275 @@
 ---
-title: "Is Australia doing well?"
+title: "Has Australia's rising material prosperity since 2010 been matched by its social wellbeing, or have the two divereged, particularly since 2022, relative to comparable OECD nations ?"
 format: html
 editor: visual
 Author: Meghna Anand (SID:540360309), Dyuti Shraboni Ghosh (SID:540364743)
 ---
 
+## Executive Summary
+
+## 1. Introduction
+
+Australia is frequently regarded as one of the world's most prosperous economies. Rising household incomes and wealth suggest Australians are materially better off than they were two decades ago. However, economic prosperity does not necessarily translate into a higher quality of life. This study investigates whether Australia's increasing prosperity has been accompanied by improvements in health, environmental quality, education and subjective wellbeing, and compares Australia's performance with similar OECD nations.
+
+## 2. Data Cleaning and Wrangling
+
 ```{r}
+#load packages
 library(tidyverse)
 library(janitor)
+library(scales)
+library(broom)
 
-wellbeing_raw <- read_csv(
+#set seed for reproducibility
+set.seed(123)
+
+#Load OECD Data
+oecd_data <- read_csv(
   "OECD Data.csv",
   show_col_types = FALSE
 ) |>
   clean_names()
 
-glimpse(wellbeing_raw)
-```
-
-## Executive Summary
-
-## 1. Introduction
-
-## 2. Data Cleaning and Wrangling
-
-```{r}
-wellbeing <- wellbeing_raw |>
-  transmute(
-    country_code = ref_area,
-    country = reference_area,
-    indicator_code = measure,
-    indicator = measure_2,
-    domain_code = domain,
-    domain = domain_2,
-    year = time_period,
-    value = obs_value,
-    unit = unit_of_measure,
-    status = observation_status
-  ) |>
+#prepare dataset
+wellbeing <- oecd_data |>
   filter(
-    !is.na(value),
-    !is.na(year)
+    age == "_T",
+    sex == "_T",
+    education_lev == "_T"
+  ) |>
+  transmute(
+    country = reference_area,
+    domain = domain_2,
+    indicator = measure_2,
+    year = as.integer(time_period),
+    value = as.numeric(obs_value)
+  ) |>
+  drop_na()
+
+
+# Quick overview
+glimpse(wellbeing)
+
+wellbeing |>
+  summarise(
+    Countries = n_distinct(country),
+    Domains = n_distinct(domain),
+    Indicators = n_distinct(indicator),
+    Years = n_distinct(year)
   )
 
-glimpse(wellbeing)
 ```
 
 ## 3. Exploratory Data Analysis
 
 ```{r}
-australia_indicators <- wellbeing |>
-  filter(country_code == "AUS") |>
-  group_by(indicator_code, indicator, domain, unit) |>
-  summarise(
-    first_year = min(year),
-    last_year = max(year),
-    observations = n(),
-    .groups = "drop"
-  ) |>
+# OECD Quality of Life domains
+qol_domains <- c(
+  "Health",
+  "Knowledge and skills",
+  "Environmental quality",
+  "Subjective well-being",
+  "Safety"
+)
+
+wellbeing |>
+  filter(domain %in% qol_domains) |>
+  distinct(domain, indicator) |>
   arrange(domain, indicator)
 
-australia_indicators
+wellbeing |>
+  distinct(domain) |>
+  arrange(domain)
+
+```
+
+**Constructing the quality of life index**
+
+```{r}
+# Define the Quality of Life indicators
+
+qol_indicators <- tribble(
+  ~domain, ~indicator, ~direction,
+  
+  "Health",
+  "Life expectancy at birth",
+  "positive",
+  
+  "Health",
+  "Deaths from suicide, alcohol, drugs",
+  "negative",
+  
+  "Knowledge and skills",
+  "Student mathematics skills",
+  "positive",
+  
+  "Environmental quality",
+  "Exposed to air pollution",
+  "negative",
+  
+  "Environmental quality",
+  "Exposure to extreme temperature",
+  "negative",
+  
+  "Subjective well-being",
+  "Life satisfaction",
+  "positive",
+  
+  "Subjective well-being",
+  "Negative affect balance",
+  "negative"
+)
+
+qol_data <- wellbeing |>
+  inner_join(
+    qol_indicators,
+    by = c("domain", "indicator")
+  )
+
+
+qol_scores <- qol_data |>
+  group_by(indicator) |>
+  mutate(
+    score = (value - min(value, na.rm = TRUE)) /
+      (max(value, na.rm = TRUE) - min(value, na.rm = TRUE)),
+    
+    score = if_else(
+      direction == "negative",
+      1 - score,
+      score
+    ),
+    
+    score = score * 100
+  ) |>
+  ungroup()
+
+domain_scores <- qol_scores |>
+  group_by(country, year, domain) |>
+  summarise(
+    domain_score = mean(score),
+    .groups = "drop"
+  )
+
+
+qol_index <- domain_scores |>
+  group_by(country, year) |>
+  summarise(
+    qol_index = mean(domain_score),
+    .groups = "drop"
+  )
+```
+
+**Has Australia's Quality of Life improved?**
+
+```{r}
+australia_qol <- qol_index |>
+  filter(country == "Australia") |>
+  arrange(year)
+
+australia_qol |>
+  summarise(
+    Start = first(qol_index),
+    End = last(qol_index),
+    Change = End - Start,
+    Percent_Change = 100 * Change / Start,
+    Average = mean(qol_index)
+  )
+
+trend_model <- lm(qol_index ~ year,
+                  data = australia_qol)
+
+tidy(trend_model)
+glance(trend_model)
+
+ggplot(australia_qol,
+       aes(year, qol_index)) +
+  geom_line(linewidth = 1.3,
+            colour = "#006BA4") +
+  geom_point(size = 2.5,
+             colour = "#006BA4") +
+  geom_smooth(method = "lm",
+              se = FALSE,
+              linetype = 2,
+              colour = "grey40") +
+  labs(
+    title = "Australia's Quality of Life has steadily improved",
+    subtitle = "Overall Quality of Life Index",
+    x = NULL,
+    y = "Index (0–100)"
+  ) +
+  theme_minimal(base_size = 13)
+confint(trend_model)
+summary(trend_model)
+```
+
+**What has driven Australia's Quality of Life?**
+
+```{r}
+australia_domains <- domain_scores |>
+  filter(country == "Australia")
+
+domain_change <- australia_domains |>
+  group_by(domain) |>
+  summarise(
+    Start = first(domain_score),
+    End = last(domain_score),
+    Change = End - Start
+  ) |>
+  arrange(desc(Change))
+
+domain_change
+
+ggplot(domain_change,
+       aes(Change,
+           reorder(domain, Change),
+           fill = Change > 0)) +
+  geom_col(show.legend = FALSE) +
+  labs(
+    title = "Which domains have improved the most?",
+    x = "Change in score",
+    y = NULL
+  ) +
+  theme_minimal()
+
+ggplot(australia_domains,
+       aes(year,
+           domain_score,
+           colour = domain)) +
+  geom_line(linewidth = 1) +
+  facet_wrap(~domain) +
+  theme_minimal()
+```
+
+```{r}
+indicator_change <-
+  qol_scores |>
+  filter(country=="Australia") |>
+  group_by(indicator) |>
+  summarise(
+    Start=first(score),
+    End=last(score),
+    Change=End-Start
+  ) |>
+  arrange(desc(Change))
+
+ggplot(
+  indicator_change,
+  aes(Change,
+      reorder(indicator,Change))
+)+
+  geom_col(fill="#2E86AB")
+
+ggplot(
+  filter(qol_scores,
+         country=="Australia"),
+  aes(year,
+      score,
+      colour=indicator)
+)+
+  geom_line()+
+  facet_wrap(~indicator,
+             scales="free_y")
+
 ```
 
 ## 4. Relationship Analysis
