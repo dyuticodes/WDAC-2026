@@ -288,6 +288,7 @@ ggplot(
 #| message: false
 
 ggplot(
+<<<<<<< HEAD
   filter(
     qol_scores,
     country == "Australia"
@@ -616,10 +617,341 @@ These countries will form the focused peer group for comparing Australia’s qua
 ## Preliminary economic finding
 
 Australia’s household disposable income increased by 13.5% between 2010 and 2024, indicating that households became materially better off on this measure. However, progress was uneven: income peaked in 2021, declined in 2022 and 2023, and partially recovered in 2024. Internationally, Australia ranked sixth out of 36 countries in 2022 and recorded income 20.6% above the sample median. Thirteen countries fell within 15% of Australia’s income and will provide a focused peer group for evaluating whether Australia achieves comparatively stronger or weaker quality-of-life outcomes despite having similar household resources.
+=======
+  filter(qol_scores,
+         country=="Australia"),
+  aes(year,
+      score,
+      colour=indicator)
+)+
+  geom_line()+
+  facet_wrap(~indicator,
+             scales="free_y")
+
+```
+>>>>>>> 3d529cc (Add quality of life predictive modelling)
 
 ## 4. Relationship Analysis
 
 ## 5. Predictive Modelling
+
+```{r}
+#identify prosperity indicators
+prosperity_candidates <- wellbeing |>
+  distinct(domain, indicator) |>
+  filter(
+    str_detect(
+      str_to_lower(paste(domain, indicator)),
+      "income|wealth|employment|unemployment|earnings|housing|financial|labour|labor|economic|gdp"
+    )
+  ) |>
+  arrange(domain, indicator)
+
+prosperity_candidates |>
+  print(n = Inf)
+
+```
+
+```{r}
+# CREATE MODELLING DATASET
+prosperity_indicators <- c(
+  "Households and NPISHs net adjusted disposable income per capita",
+  "Median net wealth",
+  "Employment rate",
+  "Housing affordability"
+)
+
+prosperity_data <- wellbeing |>
+  filter(indicator %in% prosperity_indicators) |>
+  mutate(
+    indicator = case_when(
+      indicator == "Households and NPISHs net adjusted disposable income per capita" ~ "income",
+      indicator == "Median net wealth" ~ "wealth",
+      indicator == "Employment rate" ~ "employment",
+      indicator == "Housing affordability" ~ "housing"
+    )
+  ) |>
+  select(country, year, indicator, value) |>
+  pivot_wider(
+    names_from = indicator,
+    values_from = value
+  )
+
+ml_data <- qol_index |>
+  inner_join(
+    prosperity_data,
+    by = c("country", "year")
+  ) |>
+  drop_na()
+
+glimpse(ml_data)
+
+ml_data |>
+  summarise(
+    Observations = n(),
+    Countries = n_distinct(country),
+    Years = n_distinct(year)
+  )
+
+colSums(is.na(ml_data))
+
+```
+
+```{r}
+# ---------------------------------------------------------
+# STEP 3: CORRELATION ANALYSIS
+# ---------------------------------------------------------
+
+cor_matrix <- ml_data |>
+  select(
+    qol_index,
+    income,
+    wealth,
+    housing,
+    employment
+  ) |>
+  cor()
+
+round(cor_matrix, 2)
+
+library(corrplot)
+corrplot(
+  cor_matrix,
+  method = "color",
+  type = "upper",
+  addCoef.col = "black",
+  tl.col = "black",
+  tl.srt = 45,
+  number.cex = 0.7
+)
+
+cor.test(ml_data$qol_index, ml_data$income)
+
+cor.test(ml_data$qol_index, ml_data$wealth)
+
+cor.test(ml_data$qol_index, ml_data$housing)
+
+cor.test(ml_data$qol_index, ml_data$employment)
+
+```
+
+```{r}
+## MULTIPLE LINEAR REGRESSION
+
+full_model <- lm(
+  qol_index ~ income + wealth + housing + employment,
+  data = ml_data
+)
+
+summary(full_model)
+
+library(broom)
+
+tidy(full_model, conf.int = TRUE)
+
+glance(full_model)
+
+tidy(full_model, conf.int = TRUE) |>
+  filter(term != "(Intercept)") |>
+  ggplot(aes(
+    x = estimate,
+    y = reorder(term, estimate)
+  )) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed",
+    colour = "grey60"
+  ) +
+  geom_point(size = 3, colour = "#006BA4") +
+  geom_errorbarh(
+    aes(
+      xmin = conf.low,
+      xmax = conf.high
+    ),
+    height = 0.2,
+    colour = "#006BA4"
+  ) +
+  labs(
+    title = "Estimated effect of prosperity indicators on Quality of Life",
+    x = "Regression coefficient",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 13)
+
+summary(full_model)
+tidy(full_model, conf.int = TRUE)
+glance(full_model)
+```
+
+- Overall model is highly significant (F-test, *p* \< 0.001)
+
+- Adjusted R\^2 = **0.427**, so prosperity explains about **43%** of the variation in QoL.
+
+- Employment is the strongest predictor.
+
+- Income is also significant.
+
+- Wealth is borderline (*p* = 0.058).
+
+- Housing affordability doesn't appear to contribute much once the other variables are included.
+
+```{r}
+# ---------------------------------------------------------
+# STEPWISE MODEL SELECTION
+# ---------------------------------------------------------
+
+library(MASS)
+
+step_model <- stepAIC(
+  full_model,
+  direction = "both",
+  trace = FALSE
+)
+
+summary(step_model)
+AIC(full_model, step_model)
+anova(step_model, full_model)
+tidy(step_model, conf.int = TRUE)
+```
+
+```{r}
+# ---------------------------------------------------------
+# STEP 6:CHECKING REGRESSION ASSUMPTIONS
+# ---------------------------------------------------------
+
+par(mfrow = c(2, 2))
+plot(step_model)
+par(mfrow = c(1, 1))
+
+shapiro.test(residuals(step_model))
+
+library(lmtest)
+
+bptest(step_model)
+
+library(car)
+vif(step_model)
+
+```
+
+```{r}
+training_data <- ml_data |>
+  filter(country != "Australia")
+
+australia_data <- ml_data |>
+  filter(country == "Australia")
+
+# ---------------------------------------------------------
+# FINAL MODEL (TRAINED WITHOUT AUSTRALIA)
+# ---------------------------------------------------------
+
+final_model <- lm(
+  qol_index ~ income + wealth + housing + employment,
+  data = training_data
+)
+
+summary(final_model)
+
+
+library(broom)
+
+tidy(final_model, conf.int = TRUE)
+
+glance(final_model)
+```
+
+```{r}
+australia_predictions <- australia_data |>
+  mutate(
+    predicted_qol = predict(
+      final_model,
+      newdata = australia_data
+    ),
+    prediction_error = qol_index - predicted_qol
+  )
+
+australia_predictions
+```
+
+```{r}
+australia_summary <- australia_predictions |>
+  summarise(
+    mean_actual = mean(qol_index),
+    mean_predicted = mean(predicted_qol),
+    mean_error = mean(prediction_error),
+    rmse = sqrt(mean(prediction_error^2))
+  )
+
+australia_summary
+
+```
+
+```{r}
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(scales)
+
+plot_data <- australia_predictions |>
+  dplyr::select(year, qol_index, predicted_qol) |>
+  tidyr::pivot_longer(
+    cols = c(qol_index, predicted_qol),
+    names_to = "series",
+    values_to = "qol"
+  ) |>
+  dplyr::mutate(
+    series = dplyr::recode(
+      series,
+      qol_index = "Actual QoL",
+      predicted_qol = "Expected QoL from prosperity model"
+    )
+  )
+ggplot(
+  plot_data,
+  aes(
+    x = factor(year),
+    y = qol,
+    group = series,
+    colour = series,
+    linetype = series
+  )
+) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 3) +
+  scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, 20),
+    expand = expansion(mult = c(0, 0.03))
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "Actual QoL" = "solid",
+      "Expected QoL from prosperity model" = "dashed"
+    )
+  ) +
+  labs(
+    title = "Australia's actual and expected Quality of Life",
+    subtitle = paste0(
+      "Expected values were estimated using income, wealth, ",
+      "housing affordability and employment data from other OECD countries"
+    ),
+    x = "Year",
+    y = "Quality of Life Index (0–100)",
+    colour = NULL,
+    linetype = NULL,
+    caption = paste0(
+      "Only years with complete data for all four prosperity indicators are shown. ",
+      "Mean actual QoL = 68.28; mean expected QoL = 73.30."
+    )
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(face = "bold"),
+    plot.caption = element_text(hjust = 0)
+  )
+```
 
 ## 6. Limitations
 
