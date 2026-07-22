@@ -11,11 +11,13 @@ date-format: "D MMMM YYYY"
 format:
   html:
     toc: true
+    code-fold: true
+    code-summary: "Show code"
 
 editor: visual
 
 execute:
-  echo: false
+  echo: true
   warning: false
   message: false
 ---
@@ -91,9 +93,9 @@ wellbeing <- oecd_data |>
 
 
 # Quick overview
-glimpse(wellbeing)
+#glimpse(wellbeing)
 
-wellbeing |>
+summary<-wellbeing |>
   summarise(
     Countries = n_distinct(country),
     Domains = n_distinct(domain),
@@ -112,7 +114,6 @@ Because indicator availability differed across years, the broader index was not 
 
 ```{r}
 #| label: construct-quality-of-life-index
-#| include: false
 
 qol_indicators <- tribble(
   ~domain, ~indicator, ~direction,
@@ -211,7 +212,6 @@ qol_index <- domain_scores |>
 
 ```{r}
 #| label: audit-australia-qol-coverage
-#| include: false
 
 australia_qol_coverage <- qol_scores |>
   filter(country == "Australia") |>
@@ -229,7 +229,6 @@ australia_qol_coverage <- qol_scores |>
 
 ```{r}
 #| label: construct-period-quality-of-life-index
-#| include: false
 
 qol_period_data <- qol_scores |>
   filter(year <= 2024) |>
@@ -316,7 +315,6 @@ australia_qol_period_coverage <-
 
 ```{r}
 #| label: audit-missing-qol-period-components
-#| include: false
 
 expected_domains <- unique(qol_indicators$domain)
 expected_indicators <- unique(qol_indicators$indicator)
@@ -363,7 +361,6 @@ australia_qol_period_coverage_detailed <-
 
 ```{r}
 #| label: construct-core-period-qol-index
-#| include: false
 
 number_of_periods <- n_distinct(
   qol_period_indicator_scores$period
@@ -423,7 +420,6 @@ australia_core_period_index <-
 
 ```{r}
 #| label: summarise-australia-core-qol-trend
-#| include: false
 
 australia_core_period_summary <-
   australia_core_period_index |>
@@ -441,7 +437,6 @@ australia_core_period_summary <-
 
 ```{r}
 #| label: plot-australia-core-qol-trend
-#| echo: false
 #| warning: false
 #| message: false
 #| fig-width: 8
@@ -486,7 +481,6 @@ The Core Quality-of-Life Index covers health, environmental quality and subjecti
 
 ```{r}
 #| label: calculate-core-domain-change
-#| include: false
 
 core_domain_change <-
   australia_core_period_domains |>
@@ -507,7 +501,6 @@ core_domain_change <-
 
 ```{r}
 #| label: plot-core-domain-change
-#| echo: false
 #| warning: false
 #| message: false
 #| fig-width: 8
@@ -564,7 +557,6 @@ The OECD dataset provides three Australian indicators under the Income and Wealt
 
 ```{r}
 #| label: prepare-australia-income-data
-#| include: false
 
 australia_income <- wellbeing |>
   filter(
@@ -589,7 +581,6 @@ australia_income <- wellbeing |>
 
 ```{r}
 #| label: plot-australia-income
-#| echo: false
 #| warning: false
 #| message: false
 #| fig-width: 8
@@ -629,7 +620,6 @@ Australia’s household disposable income increased from approximately \$44,625 
 
 ```{r}
 #| label: summarise-australia-income
-#| include: false
 
 australia_income_summary <- australia_income |>
   summarise(
@@ -657,7 +647,6 @@ Australia’s household disposable income increased from \$44,625 per person in 
 
 ```{r}
 #| label: prepare-international-income-comparison
-#| include: false
 
 # Check how many countries have income data in each year
 income_year_coverage <- wellbeing |>
@@ -714,7 +703,6 @@ The international income comparison uses `r comparison_year`, the most recent ye
 
 ```{r}
 #| label: calculate-australia-income-position
-#| include: false
 
 australia_income_position <- income_comparison |>
   filter(country_code == "AUS")
@@ -764,7 +752,6 @@ To create a focused economic benchmark, similar-income countries were defined as
 
 ```{r}
 #| label: create-australia-income-peer-group
-#| include: false
 
 peer_band_pct <- 0.15
 
@@ -797,7 +784,6 @@ Using this definition, Australia was compared with `r peer_country_count` countr
 
 ```{r}
 #| label: plot-australia-similar-income-countries
-#| echo: false
 #| warning: false
 #| message: false
 #| fig-width: 8
