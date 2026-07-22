@@ -1,5 +1,5 @@
 ---
-title: "Australia is richer—but is it doing better?"
+title: "Australia is richer—but is it doing well?"
 subtitle: "**Has rising material prosperity since 2010 translated into comparable improvements in quality of life?**"
 
 author:
@@ -26,15 +26,15 @@ execute:
 
 ## Executive Summary
 
-Australia became materially richer after 2010—but did Australians’ quality of life improve alongside it? This report examines whether rising household prosperity was accompanied by comparable improvements in social wellbeing.
+Australia became materially richer after 2010—but did Australians’ quality of life improve alongside it? This report examines whether rising household prosperity was accompanied by comparable improvements in quality of life.
 
-Australia’s household disposable income increased by **13.5% between 2010 and 2024**. To assess broader wellbeing, a Core Quality-of-Life Index was constructed using four consistently available OECD indicators covering health, environmental quality and subjective wellbeing. In contrast to income, the index declined from **85.2 in 2010–2012 to 81.3 in 2022–2024**, with the largest deterioration occurring in subjective wellbeing and health.
+Australia’s household disposable income per person increased by **13.5% between 2010 and 2024**. To assess broader outcomes, a Core Quality-of-Life Index was constructed using four consistently available OECD indicators covering health, environmental quality and subjective wellbeing. In contrast to income, the index declined from **85.2 in 2010–2012 to 81.3 in 2022–2024**, with the largest deterioration occurring in subjective wellbeing and health.
 
-An international regression model was then used to assess the relationship between quality of life and income, wealth, employment and housing affordability across OECD countries. The included prosperity measures and period controls accounted for **44.1%** of the observed variation in the Core Quality-of-Life Index, with employment showing the clearest positive adjusted association.
+An international regression model was used to examine the relationship between quality of life and income, wealth, employment and housing affordability across OECD countries. Together, the prosperity measures and period controls explained 44.1% of the variation in the Core Quality-of-Life Index. Employment showed the clearest positive association after adjustment for the other variables.
 
-Australia’s Core Quality-of-Life Index was below the model’s point prediction in all four periods with complete data. However, the prediction intervals included Australia’s observed values, so this represents a consistent negative pattern rather than definitive underperformance. The estimated gap also remained negative across all 29 leave-one-country-out sensitivity models, indicating that the result was not driven by any single comparison country.
+Australia’s Core Quality-of-Life Index was below the model’s point prediction in all four periods with complete data, with an average actual-minus-predicted gap of approximately −2.7 points. However, the prediction intervals included Australia’s observed values, indicating a consistent negative pattern rather than definitive underperformance in any individual period. The estimated gap also remained negative across all 29 leave-one-country-out sensitivity models, showing that the result was not driven by any single comparison country.
 
-Overall, Australia performed strongly on household income, but its consistently measured quality-of-life outcomes did not improve alongside that prosperity. The findings suggest that economic indicators alone provide an incomplete picture of whether Australia is doing well.
+Overall, Australia performed strongly on household income, but its consistently measured quality-of-life outcomes did not improve alongside that prosperity. Economic indicators alone therefore provide an incomplete picture of whether Australia is doing well.
 
 ## 1. Introduction
 
@@ -44,15 +44,15 @@ This report investigates whether Australia's rising material prosperity since 20
 
 The analysis first examines Australia's trends in household disposable income and quality of life over time. A Quality-of-Life Index is then constructed to measure broader wellbeing outcomes. Finally, a multiple regression model is used to examine the relationship between prosperity and quality of life across OECD countries, allowing Australia's wellbeing to be compared with the level expected from its prosperity.
 
-## 2. Data Cleaning and Wrangling
+## 2. Data and analytical approach
 
-The analysis uses the OECD Current Well-being dataset, which contains internationally comparable measures of prosperity and social wellbeing across OECD countries.
+The analysis uses the OECD Current Well-being dataset, which provides internationally comparable measures of material prosperity and quality of life across countries and years.
 
-The dataset was filtered to retain observations for the total population only. Variables relating to country, indicator, wellbeing domain, year, observed value, unit of measurement and observation status were retained, while records with missing values were removed. Duplicate observations, indicator definitions and units of measurement were checked to ensure consistent comparisons across countries and years.
+The data were restricted to observations for the total population. Variables identifying the country, indicator, wellbeing domain, year, observed value, unit of measurement and observation status were retained. Records missing a year or observed value were excluded, while duplicate country–indicator–year observations, indicator definitions and measurement units were checked to support consistent comparisons.
 
-Following data cleaning, the analytical dataset contained **8,806 observations** across **47 countries**, **10 wellbeing domains**, **21 indicators** and **17 years**.
+Following data preparation, the analytical dataset contained **8,806 observations across 47 countries and areas, 10 wellbeing domains, 21 indicators and 17 reported years**. The longitudinal analysis was restricted to the challenge period from 2010 to 2024.
 
-To measure social wellbeing, a composite Quality-of-Life Index was constructed using seven OECD indicators. Because indicator availability differed over time, a Core Quality-of-Life Index containing the four indicators consistently available across every three-year period was developed for Australia's historical analysis. Household disposable income was used as the primary measure of material prosperity because it provides a complete annual series from 2010 to 2024.
+Because indicator availability varied over time, different measures were used for the economic and quality-of-life analyses. Household disposable income was selected as the primary measure of material prosperity because it provides complete annual coverage from 2010 to 2024. Historical quality of life was assessed using a Core Quality-of-Life Index based on the four indicators available consistently across every three-year period.
 
 ```{r}
 #load packages
@@ -108,7 +108,9 @@ summary<-wellbeing |>
 
 ```
 
-### 3.1 Has Australia's prosperity increased?
+## 3. Australia’s prosperity and quality of life over time
+
+### 3.1 Has Australia’s material prosperity increased?
 
 The OECD dataset provides three Australian indicators under the Income and Wealth domain: household disposable income, the top-to-bottom household income ratio, and median net wealth.
 Household disposable income is used as the primary measure of material prosperity because it provides a complete annual series from 2010 to 2024. Other OECD income and wealth indicators contain shorter time series and are therefore used only as supporting context.
@@ -267,7 +269,7 @@ australia_income_peers <- income_comparison |>
 
 In `r comparison_year`, Australia recorded household disposable income of `r scales::dollar(australia_income_value, accuracy = 1)` per person and ranked `r australia_income_rank` out of `r nrow(income_comparison)` countries. Australia's income was approximately `r difference_from_median_pct`% above the median of the countries included in the comparison.
 
-To create a focused economic benchmark, similar-income countries were defined as those whose household disposable income was within 15% of Australia’s 2022 value. This comparison helps assess whether Australia achieves stronger or weaker quality-of-life outcomes than countries with broadly comparable household resources.
+To create a focused economic benchmark, similar-income countries were defined as those whose household disposable income was within 15% of Australia’s 2022 value. This comparison provides context for Australia’s economic position among countries with broadly comparable household resources.
 
 ```{r}
 #| label: create-australia-income-peer-group
@@ -362,10 +364,10 @@ ggplot(
   )
 ```
 
-These countries will form the focused peer group for comparing Australia’s quality-of-life performance. However, all countries with complete and comparable data will be retained for the overall international ranking and regression analysis.
+These countries provide a focused economic benchmark for interpreting Australia’s position among nations with broadly comparable household resources. All countries with complete and comparable observations are retained in the later international regression analysis to maximise the available evidence.
 
 
-Australia’s household disposable income increased by 13.5% between 2010 and 2024, indicating that households became materially better off on this measure. However, progress was uneven: income peaked in 2021, declined in 2022 and 2023, and partially recovered in 2024. Internationally, Australia ranked sixth out of 36 countries in 2022 and recorded income 20.6% above the sample median. Thirteen countries fell within 15% of Australia’s income and will provide a focused peer group for evaluating whether Australia achieves comparatively stronger or weaker quality-of-life outcomes despite having similar household resources.
+Australia therefore performed strongly on household income. Disposable income increased by 13.5% between 2010 and 2024, and Australia ranked sixth out of 36 countries in the recent international comparison. However, income alone does not establish whether Australia’s broader quality of life improved. The next stage examines whether the consistently measured wellbeing outcomes moved alongside this rise in prosperity.
 
 
 ### 3.2 Constructing the Quality-of-Life Index
@@ -671,7 +673,7 @@ australia_core_period_index <-
 ```
 
 
-### 3.3 Trends in Australia’s quality of life
+### 3.3 Has Australia’s Core Quality-of-Life Index improved?
 
 ```{r}
 #| label: summarise-australia-core-qol-trend
@@ -720,7 +722,7 @@ ggplot(
     breaks = seq(0, 100, by = 20)
   ) +
   labs(
-    title = "Australia’s core quality-of-life performance declined modestly",
+    title = "Australia’s Core Quality-of-Life Index fell by 3.9 points",
     subtitle = "Consistent four-indicator index across three-year periods",
     x = NULL,
     y = "Core Quality-of-Life Index (0–100)"
@@ -731,6 +733,8 @@ ggplot(
 Using a consistent set of four indicators available in every period, Australia’s Core Quality-of-Life Index declined from `r scales::number(australia_core_period_summary$start_index, accuracy = 0.1)` in `r australia_core_period_summary$start_period` to `r scales::number(australia_core_period_summary$end_index, accuracy = 0.1)` in `r australia_core_period_summary$end_period`. This represents a decrease of `r scales::number(abs(australia_core_period_summary$change), accuracy = 0.1)` points, or approximately `r scales::number(abs(australia_core_period_summary$percentage_change), accuracy = 0.1)`%. Most of the decline occurred before 2019–2021, after which the index remained broadly stable. This suggests that Australia’s rising material prosperity was not accompanied by an improvement in these consistently measured quality-of-life outcomes.
 
 The Core Quality-of-Life Index covers health, environmental quality and subjective well-being. Knowledge and skills was excluded from the historical trend because student mathematics data were not available in every period.
+
+#### Which domains drove the change?
 
 ```{r}
 #| label: calculate-core-domain-change
@@ -790,17 +794,17 @@ ggplot(
     )
   ) +
   labs(
-    title = "Change in Australia’s consistently measured domains",
-    subtitle = "2010–2012 compared with 2022–2024",
+    title = "Subjective wellbeing drove most of the decline",
+  subtitle = "Change from 2010–2012 to 2022–2024",
     x = "Change in normalised domain score",
     y = NULL
   ) +
   theme_minimal(base_size = 12)
 ```
 
-Australia’s consistently measured quality-of-life domains moved in different directions between 2010–2012 and 2022–2024. Environmental quality remained broadly stable, while health declined by approximately 3.9 points and subjective well-being declined by 8.0 points. The overall reduction in the Core Quality-of-Life Index was therefore driven primarily by weaker subjective well-being and, to a lesser extent, health outcomes. Knowledge and skills was excluded because student mathematics data were not available throughout the full study period.
+The decline was not evenly distributed across the three consistently measured domains. Subjective wellbeing recorded the largest decrease, falling by 8.0 points, while health declined by 3.9 points. Environmental quality remained broadly stable, increasing by only 0.1 points. The overall reduction in the Core Quality-of-Life Index was therefore driven mainly by weaker subjective-wellbeing outcomes and, to a lesser extent, health.
 
-
+Knowledge and skills was excluded because student mathematics data were not available consistently throughout the study period.
 ## 4. Material prosperity and quality of life
 
 This section examines whether material prosperity is associated with quality of life across OECD countries. To preserve comparability, the analysis uses the same four quality-of-life indicators and the same three-year periods for every included country-period observation.
@@ -978,7 +982,7 @@ A correlation matrix provides an initial description of the relationships betwee
 
 ```{r}
 #| label: plot-prosperity-qol-correlations
-#| echo: false
+#| echo: true
 #| warning: false
 #| message: false
 #| fig-width: 7
@@ -1027,8 +1031,11 @@ A multiple linear regression model was estimated using non-Australian country-pe
 Income and wealth were log-transformed because their distributions were strongly right-skewed. All four prosperity measures were then standardised, allowing their estimated associations to be compared on a common scale. Period controls were included, and country-clustered standard errors were used because countries could contribute observations from multiple periods.
 
 ```{r}
-#| label: fit-and-prepare-association-model
-#| include: false
+#| echo: true
+#| results: hide
+#| warning: false
+#| message: false
+#| code-summary: "Show model estimation code"
 
 # Estimate the model using countries other than Australia
 model_training_raw <- international_model_complete |>
@@ -1149,6 +1156,9 @@ employment_result <- association_results |>
   filter(term == "employment_z")
 ```
 
+
+
+
 ```{r}
 #| label: leave-one-country-out-robustness
 #| include: false
@@ -1253,7 +1263,7 @@ leave_one_country_out_results <-
 
           predicted_core_qol = predict(
             reduced_model,
-            newdata = cur_data()
+            newdata = pick(everything())
           ),
 
           prediction_gap =
@@ -1284,9 +1294,157 @@ leave_one_country_out_summary <-
   )
 ```
 
+
+
+### Model selection and diagnostic checks
+
+```{r}
+#| label: check-association-model-assumptions
+#| echo: true
+#| results: hide
+#| warning: false
+#| message: false
+#| code-summary: "Show diagnostic test code"
+
+# Test for unequal residual variance
+bp_test <- lmtest::bptest(
+  association_model
+)
+
+# Test whether important nonlinear patterns remain
+reset_test <- lmtest::resettest(
+  association_model,
+  power = 2:3,
+  type = "fitted"
+)
+
+# Calculate VIF values for the four prosperity predictors
+predictor_names <- c(
+  "income_z",
+  "wealth_z",
+  "housing_z",
+  "employment_z"
+)
+
+vif_values <- purrr::map_dbl(
+  predictor_names,
+  function(current_predictor) {
+
+    other_terms <- c(
+      setdiff(
+        predictor_names,
+        current_predictor
+      ),
+      "period"
+    )
+
+    auxiliary_model <- lm(
+      reformulate(
+        other_terms,
+        response = current_predictor
+      ),
+      data = model_training_data
+    )
+
+    1 / (
+      1 - summary(auxiliary_model)$r.squared
+    )
+  }
+)
+
+vif_table <- tibble(
+  predictor = predictor_names,
+  vif = vif_values
+)
+
+# Identify potentially influential observations
+cooks_values <- cooks.distance(
+  association_model
+)
+
+leverage_values <- hatvalues(
+  association_model
+)
+
+diagnostic_summary <- tibble(
+  check = c(
+    "Breusch-Pagan p-value",
+    "RESET p-value",
+    "Maximum VIF",
+    "Maximum Cook's distance",
+    "Observations above Cook's 4/n threshold",
+    "Maximum leverage"
+  ),
+  value = c(
+    unname(bp_test$p.value),
+    unname(reset_test$p.value),
+    max(vif_values),
+    max(cooks_values),
+    sum(
+      cooks_values >
+        4 / nobs(association_model)
+    ),
+    max(leverage_values)
+  )
+)
+
+diagnostic_summary
+vif_table
+```
+
+Regression diagnostics were examined before interpreting the model. The RESET test found no strong evidence that the linear specification was inappropriate (*p* = 0.057). Multicollinearity was also low, with all variance inflation factors between 1.10 and 1.41.
+
+```{r}
+#| label: residual-normality-check
+#| echo: true
+#| warning: false
+#| message: false
+#| code-summary: "Show Q–Q plot code"
+#| fig-width: 7
+#| fig-height: 5
+
+model_diagnostics <- broom::augment(
+  association_model
+)
+
+ggplot(
+  model_diagnostics,
+  aes(sample = .std.resid)
+) +
+  stat_qq(
+    alpha = 0.7,
+    size = 2
+  ) +
+  stat_qq_line(
+    linewidth = 0.8
+  ) +
+  labs(
+    title = "Normal Q–Q plot of model residuals",
+    subtitle = "Points close to the reference line indicate approximate normality",
+    x = "Theoretical quantiles",
+    y = "Standardised residuals"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+The diagnostic results broadly supported the model specification. The RESET test found no strong evidence of misspecification (*p* = 0.057), variance inflation factors were low at 1.10–1.41, and the Q–Q plot indicated approximate residual normality, with only modest deviations in the extreme tails.
+
+The Breusch–Pagan test identified heteroskedasticity (*p* < 0.001), while repeated country observations meant that ordinary independence could not be assumed. Country-clustered standard errors were therefore used to provide inference robust to unequal variance and within-country dependence. Although 11 observations exceeded the Cook’s-distance screening threshold, the maximum value was 0.298, and Australia’s estimated gap remained negative in all 29 leave-one-country-out models.
+
+These checks support the model as an appropriate exploratory comparison tool. Results are interpreted as adjusted associations and comparative predictions, not causal effects or definitive evidence of underperformance.
+
+
+
+### Is Australia performing as well as its prosperity would suggest?
+
+
 ```{r}
 #| label: predict-australia-core-qol
-#| include: false
+#| echo: true
+#| results: hide
+#| warning: false
+#| message: false
+#| code-summary: "Show Australia prediction code"
 
 # Prepare Australia's prosperity measures using the same
 # transformations as the international training data
@@ -1314,20 +1472,71 @@ australia_prediction_data <-
       prosperity_scaling$employment_sd
   )
 
-# Predict Australia's Core QoL using the model trained
-# on other OECD countries
+# Predict Australia's Core QoL
 australia_prediction_data$predicted_core_qol <-
   predict(
     association_model,
     newdata = australia_prediction_data
   )
 
-# Calculate the difference between actual and predicted QoL
+# Construct the model matrix for Australia's observations
+prediction_matrix <- model.matrix(
+  delete.response(
+    terms(association_model)
+  ),
+  data = australia_prediction_data
+)
+
+# Match the fitted model coefficient columns
+prediction_matrix <- prediction_matrix[
+  ,
+  names(coef(association_model)),
+  drop = FALSE
+]
+
+# Estimate uncertainty using the country-clustered covariance matrix
+prediction_mean_se <- sqrt(
+  diag(
+    prediction_matrix %*%
+      clustered_vcov %*%
+      t(prediction_matrix)
+  )
+)
+
+# Include unexplained observation-level variation
+prediction_total_se <- sqrt(
+  prediction_mean_se^2 +
+    sigma(association_model)^2
+)
+
+critical_value <- qt(
+  0.975,
+  df = df.residual(association_model)
+)
+
+# Add approximate 95% prediction intervals and gaps
 australia_prediction_data <-
   australia_prediction_data |>
   mutate(
+    prediction_lower =
+      predicted_core_qol -
+      critical_value * prediction_total_se,
+
+    prediction_upper =
+      predicted_core_qol +
+      critical_value * prediction_total_se,
+
     prediction_gap =
-      core_qol_index - predicted_core_qol
+      core_qol_index -
+      predicted_core_qol,
+
+    gap_lower =
+      core_qol_index -
+      prediction_upper,
+
+    gap_upper =
+      core_qol_index -
+      prediction_lower
   )
 
 # Summarise Australia's performance across available periods
@@ -1343,8 +1552,6 @@ australia_prediction_summary <-
     )
   )
 ```
-
-### Is Australia performing as well as its prosperity would suggest?
 
 ```{r}
 #| label: prepare-australia-prediction-plot
@@ -1376,59 +1583,104 @@ australia_prediction_plot_data <-
 ```
 
 ```{r}
-#| label: plot-australia-actual-expected-qol
-#| echo: false
+#| label: plot-australia-prediction
+#| echo: true
 #| warning: false
 #| message: false
+#| code-summary: "Show prediction plot code"
 #| fig-width: 8
 #| fig-height: 5
 
 ggplot(
-  australia_prediction_plot_data,
-  aes(
-    x = period,
-    y = qol,
-    group = series,
-    linetype = series,
-    shape = series
-  )
+  australia_prediction_data,
+  aes(x = period)
 ) +
-  geom_line(linewidth = 1) +
-  geom_point(size = 3) +
+  geom_errorbar(
+    aes(
+      ymin = prediction_lower,
+      ymax = prediction_upper
+    ),
+    width = 0.12,
+    linewidth = 0.8
+  ) +
+  geom_line(
+    aes(
+      y = core_qol_index,
+      group = 1,
+      linetype = "Actual Core QoL"
+    ),
+    linewidth = 1
+  ) +
+  geom_point(
+    aes(
+      y = core_qol_index,
+      shape = "Actual Core QoL"
+    ),
+    size = 3
+  ) +
+  geom_line(
+    aes(
+      y = predicted_core_qol,
+      group = 1,
+      linetype = "Predicted Core QoL"
+    ),
+    linewidth = 1
+  ) +
+  geom_point(
+    aes(
+      y = predicted_core_qol,
+      shape = "Predicted Core QoL"
+    ),
+    size = 3
+  ) +
   geom_text(
     aes(
+      y = core_qol_index,
       label = scales::number(
-        qol,
+        core_qol_index,
         accuracy = 0.1
-      ),
-      vjust = if_else(
-        series == "Expected Core QoL from prosperity",
-        -1,
-        1.7
       )
     ),
+    vjust = 1.7,
     size = 3.4,
     show.legend = FALSE
   ) +
-  scale_y_continuous(
-    limits = c(79, 88),
-    breaks = seq(80, 88, by = 2),
-    expand = expansion(mult = c(0.03, 0.08))
+  geom_text(
+    aes(
+      y = predicted_core_qol,
+      label = scales::number(
+        predicted_core_qol,
+        accuracy = 0.1
+      )
+    ),
+    vjust = -1,
+    size = 3.4,
+    show.legend = FALSE
   ) +
   scale_linetype_manual(
     values = c(
       "Actual Core QoL" = "solid",
-      "Expected Core QoL from prosperity" = "dashed"
+      "Predicted Core QoL" = "dashed"
     )
   ) +
+  scale_shape_manual(
+    values = c(
+      "Actual Core QoL" = 16,
+      "Predicted Core QoL" = 17
+    )
+  ) +
+  scale_y_continuous(
+    limits = c(72, 99),
+    breaks = seq(75, 95, by = 5)
+  ) +
   labs(
-    title = "Australia’s quality of life remained below its predicted level",
-    subtitle = "Expected values estimated from comparable OECD countries; zoomed axis",
+    title = "Australia’s observed Core QoL was below the point prediction",
+    subtitle = "Predicted values include approximate 95% prediction intervals",
     x = NULL,
     y = "Core Quality-of-Life Index",
     linetype = NULL,
     shape = NULL,
-    caption = "The vertical axis is restricted to 79–88 to make the difference between the two series visible."
+    caption = "Observed values remained within the prediction intervals in all four periods."
   ) +
   theme_minimal(base_size = 12) +
   theme(
@@ -1452,9 +1704,11 @@ The leave-one-country-out analysis provides additional support for the direction
 
 ```{r}
 #| label: plot-leave-one-country-out-robustness
-#| echo: true
+#| #| echo: true
+#| results: hide
 #| warning: false
 #| message: false
+#| code-summary: "Show leave-one-country-out code"
 #| fig-width: 8
 #| fig-height: 3.8
 
