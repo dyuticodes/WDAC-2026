@@ -1189,6 +1189,169 @@ employment_result <- association_results |>
   filter(term == "employment_z")
 ```
 
+
+
+```{r}
+#| label: predict-australia-core-qol
+#| include: false
+
+# Prepare Australia's prosperity measures using the same
+# transformations as the international training data
+australia_prediction_data <-
+  international_model_complete |>
+  filter(country == "Australia") |>
+  mutate(
+    log_income = log(income),
+    log_wealth = log(wealth),
+
+    income_z =
+      (log_income - prosperity_scaling$income_mean) /
+      prosperity_scaling$income_sd,
+
+    wealth_z =
+      (log_wealth - prosperity_scaling$wealth_mean) /
+      prosperity_scaling$wealth_sd,
+
+    housing_z =
+      (housing - prosperity_scaling$housing_mean) /
+      prosperity_scaling$housing_sd,
+
+    employment_z =
+      (employment - prosperity_scaling$employment_mean) /
+      prosperity_scaling$employment_sd
+  )
+
+# Predict Australia's Core QoL using the model trained
+# on other OECD countries
+australia_prediction_data$predicted_core_qol <-
+  predict(
+    association_model,
+    newdata = australia_prediction_data
+  )
+
+# Calculate the difference between actual and predicted QoL
+australia_prediction_data <-
+  australia_prediction_data |>
+  mutate(
+    prediction_gap =
+      core_qol_index - predicted_core_qol
+  )
+
+# Summarise Australia's performance across available periods
+australia_prediction_summary <-
+  australia_prediction_data |>
+  summarise(
+    periods_available = n(),
+    mean_actual = mean(core_qol_index),
+    mean_predicted = mean(predicted_core_qol),
+    mean_gap = mean(prediction_gap),
+    rmse = sqrt(
+      mean(prediction_gap^2)
+    )
+  )
+```
+
+
+### Is Australia performing as well as its prosperity would suggest?
+
+```{r}
+#| label: prepare-australia-prediction-plot
+#| include: false
+
+australia_prediction_plot_data <-
+  australia_prediction_data |>
+  select(
+    period,
+    core_qol_index,
+    predicted_core_qol
+  ) |>
+  pivot_longer(
+    cols = c(
+      core_qol_index,
+      predicted_core_qol
+    ),
+    names_to = "series",
+    values_to = "qol"
+  ) |>
+  mutate(
+    series = recode(
+      series,
+      core_qol_index = "Actual Core QoL",
+      predicted_core_qol =
+        "Expected Core QoL from prosperity"
+    )
+  )
+```
+
+```{r}
+#| label: plot-australia-actual-expected-qol
+#| echo: false
+#| warning: false
+#| message: false
+#| fig-width: 8
+#| fig-height: 5
+
+ggplot(
+  australia_prediction_plot_data,
+  aes(
+    x = period,
+    y = qol,
+    group = series,
+    linetype = series,
+    shape = series
+  )
+) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 3) +
+  geom_text(
+    aes(
+      label = scales::number(
+        qol,
+        accuracy = 0.1
+      ),
+      vjust = if_else(
+        series == "Expected Core QoL from prosperity",
+        -1,
+        1.7
+      )
+    ),
+    size = 3.4,
+    show.legend = FALSE
+  ) +
+  scale_y_continuous(
+    limits = c(79, 88),
+    breaks = seq(80, 88, by = 2),
+    expand = expansion(mult = c(0.03, 0.08))
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "Actual Core QoL" = "solid",
+      "Expected Core QoL from prosperity" = "dashed"
+    )
+  ) +
+  labs(
+    title = "Australia’s quality of life remained below its predicted level",
+    subtitle = "Expected values estimated from comparable OECD countries; zoomed axis",
+    x = NULL,
+    y = "Core Quality-of-Life Index",
+    linetype = NULL,
+    shape = NULL,
+    caption = "The vertical axis is restricted to 79–88 to make the difference between the two series visible."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    panel.grid.minor = element_blank(),
+    plot.caption = element_text(
+      hjust = 0,
+      size = 9
+    )
+  )
+```
+Across the four periods with complete prosperity data, Australia’s average actual Core Quality-of-Life Index was `r scales::number(australia_prediction_summary$mean_actual, accuracy = 0.1)`, compared with a model-predicted average of `r scales::number(australia_prediction_summary$mean_predicted, accuracy = 0.1)`. Australia therefore performed approximately `r scales::number(abs(australia_prediction_summary$mean_gap), accuracy = 0.1)` points below the level associated with its income, wealth, employment and housing measures.
+
+The gap increased from approximately `r scales::number(abs(first(australia_prediction_data$prediction_gap)), accuracy = 0.1)` points in 2010–2012 to `r scales::number(abs(last(australia_prediction_data$prediction_gap)), accuracy = 0.1)` points in 2019–2021. This suggests that Australia’s material prosperity was increasingly accompanied by weaker quality-of-life outcomes than the model would predict from comparable OECD countries. This is an association rather than evidence that prosperity directly caused the difference.
+
 ```{r}
 #| label: plot-association-coefficients
 #| echo: false
