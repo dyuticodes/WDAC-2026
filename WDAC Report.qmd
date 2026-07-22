@@ -261,7 +261,6 @@ ggplot(australia_domains,
 
 The OECD dataset provides three Australian indicators under the Income and Wealth domain: household disposable income, the top-to-bottom household income ratio, and median net wealth. Household net adjusted disposable income per person was selected as the primary measure of material prosperity because it has a complete annual series from 2010 to 2024 and is suitable for comparison across countries. The other two indicators are retained as supporting context because they contain fewer observations and end in 2020.
 
-
 ```{r}
 #| label: prepare-australia-income-data
 #| include: false
@@ -284,6 +283,7 @@ australia_income <- wellbeing |>
       100 * (value / lag(value) - 1)
   )
 ```
+
 ### Income trend
 
 ```{r}
