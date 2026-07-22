@@ -1,10 +1,19 @@
 ---
 title: "Has Australia's rising material prosperity since 2010 translated into comparable improvements in social wellbeing?"
-Author: Meghna Anand (SID:540360309), Dyuti Shraboni Ghosh (SID:540364743)
+
+author:
+  - "Meghna Anand (SID: 540360309)"
+  - "Dyuti Shraboni Ghosh (SID: 540364743)"
+
+date: today
+date-format: "D MMMM YYYY"
+
 format:
   html:
     toc: true
+
 editor: visual
+
 execute:
   echo: false
   warning: false
@@ -12,33 +21,33 @@ execute:
 ---
 
 ## Executive Summary
-Australia is one of the world's most prosperous economies, yet rising material prosperity does not necessarily translate into improvements in social wellbeing. This study investigates whether Australia's increasing prosperity since 2010 has been accompanied by comparable improvements in quality of life.
+Australia is one of the world's most prosperous economies, with high household incomes, substantial wealth and strong employment outcomes. However, rising prosperity does not necessarily translate into improvements in broader measures of social wellbeing. This report investigates whether Australia's increasing material prosperity since 2010 has been accompanied by comparable improvements in quality of life.
 
-Using the OECD Current Well-being dataset, a composite Quality-of-Life Index was constructed from seven indicators spanning health, knowledge and skills, environmental quality, and subjective wellbeing. A Core Quality-of-Life Index based on four consistently available indicators was used to assess Australia's long-term trend.
+A composite Quality-of-Life Index was constructed using seven OECD indicators covering health, knowledge and skills, environmental quality, and subjective wellbeing. To enable consistent historical comparison, a Core Quality-of-Life Index was developed using the four indicators available across every three-year period.
 
-Household disposable income increased by 13.5% between 2010 and 2024, while the Core Quality-of-Life Index declined over the same period, suggesting that rising prosperity was not accompanied by comparable improvements in social wellbeing.
+Australia's household disposable income increased by **13.5%** between 2010 and 2024, while the Core Quality-of-Life Index declined over the same period. This suggests that improvements in material prosperity were not matched by comparable improvements in social wellbeing.
 
-A multiple regression model estimated using OECD country-period observations found that the prosperity indicators and period controls accounted for 44.1% of the variation in quality of life. Australia consistently recorded lower quality of life than predicted from its income, wealth, housing affordability and employment outcomes.
+To investigate this relationship further, a multiple regression model was estimated using OECD country-period observations. The model found that prosperity indicators and period controls accounted for **44.1%** of the variation in quality of life, while Australia consistently recorded lower quality of life than predicted from its prosperity measures.
 
-Overall, the findings suggest that while material prosperity contributes to quality of life, economic growth alone has not translated into comparable improvements in Australia's social wellbeing.
+Overall, the analysis suggests that although material prosperity contributes to quality of life, economic growth alone has not translated into comparable improvements in Australia's social wellbeing.
 
 ## 1. Introduction
 
-Australia is one of the world's most prosperous economies, with high household incomes, substantial wealth and strong employment outcomes. However, economic prosperity is only one dimension of national progress and does not necessarily translate into better health, environmental quality or life satisfaction.
+Australia has experienced sustained growth in material prosperity over the past decade, reflected by high household incomes, wealth and employment. However, these measures do not fully capture people's quality of life, which also depends on health, environmental quality, education and subjective wellbeing.
 
-Although Australia's household disposable income has grown steadily since 2010, it remains unclear whether social wellbeing has improved at the same pace. Understanding this relationship is important because economic indicators alone cannot fully capture quality of life.
+This report investigates whether Australia's rising material prosperity since 2010 has translated into comparable improvements in social wellbeing.
 
-This study investigates the following research question:
-**Has Australia's rising material prosperity since 2010 translated into comparable improvements in social wellbeing?**
-
-To answer this question, the analysis first examines Australia's trends in material prosperity and quality of life over time. It then estimates the relationship between prosperity and quality of life across OECD countries using a multivariable regression model, allowing Australia's wellbeing to be compared with the level expected from its material prosperity.
+The analysis first examines Australia's trends in household disposable income and quality of life over time. A Quality-of-Life Index is then constructed to measure broader wellbeing outcomes. Finally, a multiple regression model is used to examine the relationship between prosperity and quality of life across OECD countries, allowing Australia's wellbeing to be compared with the level expected from its prosperity.
 
 ## 2. Data Cleaning and Wrangling
 
-The analysis uses the OECD Current Well-being dataset, which provides internationally comparable measures of material prosperity and social wellbeing.
-The dataset was filtered to retain total-population observations, while relevant variables were standardised. Missing values, duplicate records, indicator definitions and units of measurement were checked to ensure consistent comparisons across countries and years.
-After cleaning, the analytical dataset contained 8,806 observations across 47 countries, 10 wellbeing domains, 21 indicators and 17 years, providing the foundation for constructing the Quality-of-Life Index and analysing the relationship between material prosperity and social wellbeing.
+The analysis uses the OECD Current Well-being dataset, which contains internationally comparable measures of prosperity and social wellbeing across OECD countries.
 
+The dataset was filtered to retain observations for the total population only. Variables relating to country, indicator, wellbeing domain, year, observed value, unit of measurement and observation status were retained, while records with missing values were removed. Duplicate observations, indicator definitions and units of measurement were checked to ensure consistent comparisons across countries and years.
+
+Following data cleaning, the analytical dataset contained **8,806 observations** across **47 countries**, **10 wellbeing domains**, **21 indicators** and **17 years**.
+
+To measure social wellbeing, a composite Quality-of-Life Index was constructed using seven OECD indicators. Because indicator availability differed over time, a Core Quality-of-Life Index containing the four indicators consistently available across every three-year period was developed for Australia's historical analysis. Household disposable income was used as the primary measure of material prosperity because it provides a complete annual series from 2010 to 2024.
 
 ```{r}
 #load packages
